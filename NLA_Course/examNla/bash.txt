@@ -1,0 +1,30 @@
+#! /bin/bash
+
+#solution of A1*y=b
+mpirun -n 4 ./test1 A1.mtx 1 solexam.txt histexam.txt -i cg -tol 1.e-10
+
+#solution of A2*x=y
+mpirun -n 4 ./test1 A1.mtx solexam.txt solexam2.txt histexam2.txt -i cg -tol 1.e-10
+
+#the same with a preconditioner additive shwarz
+mpirun -n 4 ./test1 A1.mtx 1 solexam3.txt histexam3.txt -i cg -tol 1.e-10 -adds true -p jacobi
+
+mpirun -n 4 ./test1 A1.mtx solexam3.txt solexam4.txt histexam4.txt -i cg -tol 1.e-10 -adds true -p jacobi
+
+echo "eigenvalues"
+#compute the eigenvalue
+mpirun -n 4 ./eigen1 AEigPb.mtx eigvec.txt hist.txt -e pi -emaxiter 10000 -etol 1.e-9
+
+#upgrading with shift
+mpirun -n 4 ./eigen1 AEigPb.mtx eigvec.txt hist.txt -e pi -emaxiter 10000 -etol 1.e-9 -shift 4.0
+
+
+#inverse power method
+#using conjugate gradient
+mpirun -n 4 ./eigen1 AEigPb.mtx eigvec.txt hist.txt -e ii -i cg
+#using cj with preconditioner
+mpirun -n 4 ./eigen1 AEigPb.mtx eigvec.txt hist.txt -e ii -i cg -p jacobi
+#using gauss siedel and ilu as preconditioner
+mpirun -n 4 ./eigen1 AEigPb.mtx eigvec.txt hist.txt -e ii -i gs -p ilu
+#using gmres with jacobi preconditioner 
+mpirun -n 4 ./eigen1 AEigPb.mtx eigvec.txt hist.txt -e ii -i gmres -p jacobi
